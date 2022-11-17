@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    
+    <meta charset="utf-8" />
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	
+	<!-- Bibliothèque de base: Leaflet-->
+    <link rel="stylesheet" href="libs/leaflet.css"/>
+	<!-- <script type="text/javascript" src="https://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=h_UXCq3A0OGzZEn_VjoaMEyaVrhBWIRt498JU8GlAlDi8LrQpqW43bSaiCUNj03ZzxHdy6OHOmOgaR2ZV-ka3-_mm_lzNgJx7CHA17ghL1y6r1YiaO0yBXCeg5lga0x25otq2sYoRQ7G0z7xmIz8F8VryaTb7gCGxhCI7PYQVRjwGlHqOX_ngRW7UIRLM2G3gXfFgMoqejXycB8AIcQ_sHnhb8PtyriIROVA-Vbsdf3ihDEbYI1E04cBQlR7Ylyymw9I6NG0KgzUOfJFjSPKwjsktGZDq7m030bwFrzXaGCcqrgnZen1RjRorlUdGy1HvLVLlrMYgmNCuIIw3Og5ch68j57jo9B87AjjcBKLNoMs7W7e83hgp5CsQ2DmAq-4mH4qPjhNGoXCsQoee1gSklTgdawVtV8G1oPTTSu6S0rm0DvxYDQ50FY3Tfn4UrVjHb7iSRXGOPkVSxqdU3SFrQ" charset="UTF-8"> -->
+	</script><script src="libs/leaflet.js"></script>
+	
+	<!-- Draw-->
+	<script src= "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.2.3/leaflet.draw-src.js"></script>
+	<link rel="stylesheet" href= "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.2.3/leaflet.draw.css">
+	<script src= "https://cdnjs.cloudflare.com/ajax/libs/leaflet.draw/0.2.3/leaflet.draw.js"></script>
+	
+	<!-- Slide menu-->
+	<link rel="stylesheet" href="libs/slide_menu/SlideMenu.css" />
+	<script src="libs/slide_menu/SlideMenu.js"></script>
+	
+	<!-- GeoCoder-->
+	<link rel="stylesheet" href="libs/Control.OSMGeocoder.css"/>
+	<script src="libs/Control.OSMGeocoder.js"></script>
+	
+	<!-- Overview-->
+	<link rel="stylesheet" href="libs/overview/MiniMap.css" />
+	<script src="libs/overview/MiniMap.js"></script>
+ 
+	<!-- Localisation-->
+	<link rel="stylesheet" href="libs/L.Control.Locate.min.css" />
+    <script src="libs/L.Control.Locate.js"></script>
+	
+	<!-- Mouse position-->
+	<link rel="stylesheet" href="libs/L.Control.MousePosition.css" />
+    <script src="libs/L.Control.MousePosition.js"></script>
+	
+	<!-- Navigation Bar-->
+    <link rel="stylesheet" href="libs/NavBar/NavBar.css"/>
+	<script src="libs/NavBar/NavBar.js"></script>
+	
+	<!-- Font está causando lentidão -->
+	<link href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+	
+	<!-- jquery-->
+	<script src="https://code.jquery.com/jquery-2.1.1.min.js"></script>
+
+	<script src="libs/Leaflet-WMS..js"></script>
+	<script src="libs/spin.js"></script>
+	
+	<!-- <link ref="@(Url.Content(" path of css"))" rel="stylesheet">
+	<script src="@(Url.Content(" path of js"))" type="text/javascript"></script> -->
+
+
+    <style>
+        body {
+            padding: 0;
+            margin: 0;
+        }
+        html, body, #map {
+            height: 100%;
+            width: 100%;
+        }
+
+		#textofooter, #textotop {
+			z-index: 1;
+			/* Faz com que fique sobre todos os elementos da página */
+		}
+
+		#textotop {
+			position: absolute;
+			top: 15px;
+			left: 6%;
+			font-size: 13pt;
+		}
+
+		#textofooter {
+			position: absolute;
+			bottom: 10px;
+			right: 1%;
+			text-align: right;
+			font-size: 8pt;
+		}
+		.leaflet-popup-content{
+			font-size: 10pt;
+		}
+    </style>
+	<title>Mapeamento de Obras SMO </title>
+</head>
+<body>
+	<!-- div para conter os textos sobre o mapa-->
+	<div id="textotop">
+		Secretaria Municipal de Obras - SMO </br>
+		Mapa de Obras em execução 2021
+	</div>
+	<div id="textofooter">em desenvolvimento</div>
+
+	<!-- div para conter o corpo do mapa -->
+    <div id="map"></div>
+
+    <script>
+	
+		///// Fundo de base
+		var OpenStreetMap = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+				attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+				subdomains: ['a', 'b', 'c'],
+				opacity: .9,
+			});
+		var WorldImagery = L.tileLayer('http://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{
+			subdomains: ['a', 'b', 'c'],
+			maxZoom: 17,
+			});
+			
+	
+		///// Configuração do mapa
+		var map = L.map('map', {
+				layers: [OpenStreetMap], /// mapa fundo de base
+				center: [2.81886,-60.72128],/// coordenadas
+				zoom: 13,	//// zoom default. Quando menor, mais altitude..
+				Srs : L.CRS.EPSG31974
+			});
+
+		/* Crédito às fontes de dados */ 
+		map.attributionControl.addAttribution(' Secretaria Municipal de Obras - SMO - developed by H. Roger ');
+		
+		/////layers de base		
+		var baseLayers = {
+			"Open Street Map": OpenStreetMap,
+			"World Imagery": WorldImagery
+		};
+
+		var servidor = 'http://localhost:8080/geoserver/SMO/wms';		 // local
+		// var servidor = 'http://192.168.15.113:8080/geoserver/SMO/wms'; // pc server
+		//	var servidor = 'http://192.168.15.159:8080/geoserver/SMO/wms'; // note server
+
+		var zmax = 22;
+
+
+		///// Buscar layers a partir do Geoserver (formato WMS)
+		var bairros = L.tileLayer.wms(servidor,{
+			layers: 'SMO:bairros' ,
+			transparent: 'true',
+			format: 'image/png',
+			version: '1.3.0',
+			maxZoom: zmax,
+		}).addTo(map);	
+
+		var infraestrutura = L.tileLayer.wms(servidor,{
+			layers: 'SMO:ObrasInfra2021' ,
+			name: 'Obras de Infraestrutura',
+			transparent: 'true',
+			format: 'image/png',
+			version: '1.3.0',
+			maxZoom: zmax,
+			// datavar: '',
+			// layerName: 'infraestrutura',
+			//pane: 'pane_ObrasInfra',
+			// onEachFeature: pop_ObrasInfra,
+			}).addTo(map);
+
+		var obrascivis = L.tileLayer.wms(servidor,{
+			layers: 'SMO:ObrasCivis2021-C' ,
+			name: "Obras de Construção Civil",
+			transparent: 'true',
+			format: 'image/png',
+			version: '1.3.0',
+			maxZoom: zmax,
+		}).addTo(map);	
+
+
+		///// Grupo de Layers
+		var overlays = {
+			'Infraestrutura viária': infraestrutura,
+			'Obras Civis': obrascivis,
+			'Bairros': bairros
+		
+		};
+
+
+		//// Criando painéis das camadas
+		// map.createPane('pane_ObrasInfra');
+		// map.getPane('pane_ObrasInfra').style.zindez = 400;
+		// // As camadas neste painel não são interativas e não obscurecem eventos de mouse / toque
+		// map.getPane('pane_ObrasInfra').style.pointerEvents='true';
+
+		// var layer_ObrasInfra = L.geoJson(infraestrutura).addTo(map);
+
+		// 	layer_ObrasInfra.eachLayer(function(layer){
+		// 	layer.bindPopup(layer.p.rua);
+		// });
+
+
+		//// Add the Find to the map 
+		var osmGeocoder = new L.Control.OSMGeocoder();
+        map.addControl(osmGeocoder);
+				
+		///// Add the Overview to the map 
+        var osm2 = L.tileLayer('http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+		var miniMap = new L.Control.MiniMap(osm2, { toggleDisplay: true }).addTo(map);
+		
+		///// Add the scale control to the map
+		L.control.scale().addTo(map);
+			
+		///// Add the Navigation Bar to the map 
+		L.control.navbar({position: 'topleft'}).addTo(map);
+		
+		///// Add the geolocate control to the map
+		L.control.locate().addTo(map);
+		
+		///// Add the mouse position to the map 
+		L.control.mousePosition().addTo(map);
+		
+		///// Add the draw feature to the map
+		var drawnItems = new L.FeatureGroup();
+		map.addLayer(drawnItems);
+
+		///// config draw feature
+		var drawControl = new L.Control.Draw({
+			position: 'topleft',
+			draw: {
+				polygon: {
+					shapeOptions: {color: 'purple'},
+					allowIntersection: false,
+					drawError: {color: 'orange',timeout: 1000},
+					showArea: true,
+					metric: false,
+					repeatMode: true
+				},
+				polyline: {
+					shapeOptions: {color: 'red'},
+				},
+				rect: {
+					shapeOptions: {color: 'green'},
+				},
+				circle: {
+					shapeOptions: {color: 'steelblue'},
+				},
+				marker: true
+				},
+						edit: {
+						  featureGroup: drawnItems,
+						  remove: true
+					}
+				});
+		map.addControl(drawControl);
+		map.on('draw:created', function (e) {
+			var type = e.layerType,
+				layer = e.layer;
+			drawnItems.addLayer(layer);
+		});
+		
+		
+		/////////// slide menu
+		var div = L.DomUtil.create('div', 'info-legend');	
+			var titre1 = 'Obras de Infraestrutura';
+			contents1 = div.innerHTML = '<br><img src="'+servidor +'?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=SMO:ObrasInfra2021" </img><br>';
+			
+			var titre2 = 'Obras Civis';
+			contents2 = div.innerHTML = '<br><img src="' + servidor + '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=60&HEIGHT=60&LAYER=SMO:ObrasCivis2021-C" </img><br>';
+
+			var titre3 = 'Bairros';
+			contents3 = div.innerHTML = '<br><img src="' + servidor + '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=SMO:bairros" </img><br>';
+
+			// var titre3 = 'lim_inter_district';
+			// contents3 = div.innerHTML = '<br><img src="http://localhost:8050/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=hta_zaghouan:limite_inter_district" </img><br>';
+			
+			
+			var slideMenu = L.control.slideMenu('', {position: 'topright', delay: '5'}).addTo(map);
+			slideMenu.setContents(titre1 + contents1 + titre2 + contents2 + titre3 + contents3  );
+		
+		///// Ajout des couches de base + couches geoserver
+		L.control.layers(baseLayers,overlays).addTo(map);
+		
+		///////////////////////////////////////////////////////
+
+		// Retrieve document's body & create new spinner.
+		var body = document.getElementsByTagName('body')[0];
+		var spinner = new Spinner({
+			lines: 15, // The number of lines to draw.
+   			length: 20, // The length of each line.
+			width: 15, // The line thickness.
+			radius: 50, // The radius of the inner circle.
+			corners: 1, // Corner roundness (0..1).
+			rotate: 0, // The rotation offset.
+			direction: 1, // 1: clockwise, -1: counterclockwise.
+			color: '#000', // #rgb or #rrggbb or array of colors.
+			speed: 1, // Rounds per second.
+			trail: 50, // Afterglow percentage.
+			shadow: false, // Whether to render a shadow.
+			hwaccel: false, // Whether to use hardware acceleration.
+			className: 'spinner', // The CSS class to assign to the spinner.
+			zIndex: 2e9, // The z-index (defaults to 2000000000).
+			top: '50%', // Top position relative to parent.
+			left: '50%' // Left position relative to parent.
+		});
+
+		// handle click on map. / Manipulando o clique no mapa
+		var wmsLayers =[infraestrutura, obrascivis]; // conjunto de camadas para buscar dados
+
+		map.on('click', function (e) {
+			var wmsLayersCount = wmsLayers.length;
+			if (wmsLayersCount > 0) {
+				spinner.spin(body); // Start spinner.
+			};
+
+			var fullfilledRequestsCount = 0;
+			var popupContent = '<u><b>Informações:</b></u><br>';
+			var allFeatureCount = 0;
+
+			 // Send 'GetFeatureInfo' requests.
+			for (var i = 0; i < wmsLayersCount; i++) {
+				var wmsLayer = wmsLayers[i]; // cria lista de layers do local
+				wmsLayer.getBoundingBox({
+					done: function (boundingBoxes, xhr) {
+						console.log(boundingBoxes);
+					},
+					fail: function (errorThrown, xhr) {
+						console.log(errorThrown);
+					},
+					always: function () {
+					}
+				});
+				wmsLayer.getFeatureInfo({
+					latlng: e.latlng,
+					done: function (featuresCollection, xhr) {
+						var result = createMarkingWhenDone(this, featuresCollection);
+						popupContent += result.popupContent;
+						allFeatureCount += result.allFeatureCount;
+						console.log('getFeatureInfoSucceed: ', featuresCollection);
+					},
+					fail: function (errorThrown, xhr) {
+						popupContent += createMarkingWhenError(this, errorThrown);
+						console.log('getFeatureInfo Failed: ', errorThrown);
+					},
+					always: function () {
+						fullfilledRequestsCount++;
+						console.log('getFeatureInfo Finished');
+						// Stop spinner.
+						if (fullfilledRequestsCount === wmsLayersCount) {
+							var finalPopupContent = createFinalMarking(wmsLayersCount, allFeatureCount, popupContent);
+							spinner.stop(); // Finaliza spinner
+							new L.Popup({	// cria o elemento popup e dimensões
+								minWidth: 150,
+								maxWidth: 500,
+								maxHeight: 400
+							})
+							.setLatLng(e.latlng) // localização latlng
+							.setContent(finalPopupContent) // atribii o conteúdo Finalmarking
+							.openOn(map) // adiciona ao mapa
+						};
+         			}
+        		});
+			}
+		});
+
+
+		// Helper methods. Métodos auxiliares do popup..
+		function createMarkingWhenDone(_this, _featuresCollection) {
+			var features = _featuresCollection.features;
+			var featuresCount = features.length;
+			var _popupContent = '';
+
+			// Layer info.
+			// _popupContent += '<b>' + _this.options.name;
+			// _popupContent += '</b> <span>(Layer\'s feature count: ' + featuresCount + ')</span><br>';
+
+			if (featuresCount > 0) {
+				for (var j = 0; j < featuresCount; j++) {
+					var feature = features[j];
+					var featureNumber = j + 1;
+					var p = feature.properties;
+					var propertiesNames = Object.keys(p) || [];
+
+					// Object info. Layer\'s property count
+					// _popupContent += '<b>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;';
+					// _popupContent += 'Objeto Nº ' + featureNumber;
+					// _popupContent += '</b> <span>Quantidade de propriedades: ' + propertiesNames.length + ')</span><br>';
+
+					// for (var q = 0; q < propertiesNames.length; q++) {
+					// 	var propertiesName = propertiesNames[q];
+					// 	var number = q + 1;
+
+						// Object properties.
+						// _popupContent += '<span>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(';
+						// _popupContent += number + ') ' + propertiesName;
+						// _popupContent += ': ' + properties[propertiesName] + '</span><br>';
+
+					var obra = !p.obra ? "" : "<br>" + p.obra + '</b>';
+					var trecho = !p.trecho ? "" : "<br> Trecho: <b>" + p.trecho + '</b>';
+
+					var pavokano = !p.pavokano ? '-' : p.pavokano ;
+					var pavimento = !p.pavimento ? '-' : p.pavimento + " m " + "</b>conclusão: <b>";	
+
+					var recapokano = !p.recapokano ? '-' : p.recapokano;
+					var recap = !p.recap ? '-': p.recap + " m " + "</b>conclusão: <b>";
+
+					var drenokano = !p.drenokano ? '-' : p.drenokano;
+					var drenagem = !p.drenagem ? '-': p.drenagem  + " m " + "</b>conclusão: <b>";
+
+					var calokano = !p.calokano ? '-' : p.calokano ;
+					var calcada = !p.calcada ? '-' : p.calcada + " m " + "</b>conclusão: <b>" ;
+					
+					var valatubok = !p.valatubok ? '-' : p.valatubok;
+					var vala = !p.vala ? '-' : p.vala + " m " + "</b>conclusão: <b>" ;
+
+					var meiofio = !p.meiofio ? '-' : p.meiofio + " m </b>";
+
+						_popupContent += '<b>' + _this.options.name + '</b>';
+						_popupContent += '<span>';
+						
+						_popupContent += obra;
+						_popupContent += "<br> Processo nº: <b>" +  p.processo  + '</b>';
+						_popupContent += "<br> Local: <b>" + p.rua  + '</b>';
+						_popupContent += trecho
+						_popupContent += "<br> Bairro: <b>" + p.bairro  + '</b>';
+						_popupContent += "<br> Status: <b>" + p.status  + '</b>';
+
+						var servicosinfra = "<br> <u><b>Serviços: </u> </b>" ;
+						servicosinfra += "<br> Pavimentação: <b>" + pavimento  + pavokano + "</b>";;
+						servicosinfra += "<br> Recapeamento: <b>" + recap  + recapokano + "</b>";
+						servicosinfra += "<br> Drenagem: <b>" + drenagem  + drenokano + "</b>";
+						servicosinfra += "<br> Calçada: <b>" + calcada + calokano + "</b>";
+						servicosinfra += "<br> MeioFio: <b>" + meiofio + "</b>"; 
+						
+						// testa se é infra e acrescenta os serviços
+						_popupContent += !(p.macrosetor=='Infraestrutura') ? '': servicosinfra; 
+
+						_popupContent += "<br> codobra:<b> " + p.codobra + "</b>"; 
+						_popupContent += "</span><br><br>";
+
+					// }
+				}
+			}
+			var result = {};
+			result.allFeatureCount = featuresCount;
+			result.popupContent = _popupContent;
+			return result;
+		};
+
+		function createMarkingWhenError(_this, _errorThrown) {
+			var _popupContent = '';
+			// Error message.
+			_popupContent += '<u><b>' + _this.options.name + ':</u></b><br>';
+			_popupContent += 'Error message: \'' + _errorThrown.message + '\'<br>';
+			_popupContent += '<br>'
+			return _popupContent;
+		};
+
+		function createFinalMarking(_wmsLayersCount, _allFeatureCount, _popupContent) {
+			var finalPopupContent = _popupContent;
+			// finalPopupContent += '<u><b>Dados encontrados</b></u><br>';
+			finalPopupContent += '<span>Camadas pesquisadas: ' + _wmsLayersCount + ' </span><br>';
+			finalPopupContent += '<span>Objetos pesquisados: ' + _allFeatureCount + ' </span>';
+
+			return finalPopupContent;
+		};
+
+	///////////////////////////////////////////////////////
+
+
+		// Perform 'GetFeatureInfo' request - exemplo Leaflet-WMS
+		// map.on('click', function (e) {
+		// 	infraestrutura.getFeatureInfo({
+		// 		latlng: e.latlng,
+		// 		done: function (featureCollection) {
+		// 			console.log('getFeatureInfosucceed: ', featureCollection);
+		// 		},
+		// 		fail: function (errorThrown) {
+		// 			console.log('getFeatureInfo failed: ', errorThrown);
+		// 		},
+		// 		always: function () {
+		// 			console.log('getFeatureInfo finished');
+		// 		}
+		// 	});
+		// });
+
+
+		var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ffff00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ffff00',
+                fillOpacity: 1
+              });
+            }
+            highlightLayer.openPopup();
+        };
+
+        
+		function pop_ObrasInfra(feature,layer){
+			layer.on({
+				mouseover:highlightFeature,	
+			});
+		};
+
+
+		/// Popup Infraestrutura
+			var owsrootUrl = servidor;
+			var defaultParameters = {
+				service : 'WFS',
+				version : '2.0',
+				request : 'GetFeature',
+				typeName : 'SMO:ObrasInfra2021',
+				outputFormat : 'json',
+				format_options : 'callback:getJson',
+				SrsName : 'EPSG:31974',
+				
+			};
+
+			var parameters = L.Util.extend(defaultParameters);
+			var URL = owsrootUrl + L.Util.getParamString(parameters);
+
+			var WFSLayer = null;
+
+			var ajax = $.ajax({
+				url : URL,
+				// jsonp: "$jsonp",
+				// dataType: "jsonp",
+				// dataType : 'jsonp',
+				jsonpCallback : 'getJson',
+				success : function (response) {
+					WFSLayer = L.geoJson(response, {
+						style: function (feature) {
+								return {
+								stroke: false,
+								fillColor: 'FFFFFF',
+								fillOpacity: 0
+								};
+							},
+						onEachFeature: function (feature, url) {
+							popupOptions = {maxWidth: 600};
+							url.bindPopup(
+								"<b>Processo:</b> " + p.process+
+								"<br><b>Rua: </b>" + p.rua +
+								"<br><b>Trecho: </b>" + p.trecho +
+								"<br><b>Bairro: </b>" + p.bairro + 
+								"<br><b>Pavimento: </b>" + p.pavimento + " m <b>Ano de conclusão: </b>" + p.pavokano +
+								"<br><b>Recapeamento: </b>" + p.recap + " m <b>Ano de conclusão: </b>"  + p.recapokano +
+								"<br><b>Drenagem: </b>" + p.drenagem + " m <b>Ano de conclusão: </b>"  + p.drenokano +
+								"<br><b>Calçada: </b>" + p.calcada + " m <b>Ano de conclusão: </b>"  + p.calokano +
+								"<br><b>MeioFio: </b>" + p.mf + " m "  
+								,popupOptions);
+						}
+					}).addTo(map);
+				}
+			});
+
+
+		//file:/C:/xxx.png
+    </script>
+	<script type="text/javascript">
+		//Analytics
+			var _gaq = _gaq || [];
+			_gaq.push(['_setAccount', 'UA-36489204-2']);
+			_gaq.push(['_trackPageview']);	  
+			(function() {
+			  var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			  ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			  var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+			})();
+	</script>
+	
+</body>
+</html>
