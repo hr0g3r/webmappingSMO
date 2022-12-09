@@ -306,6 +306,25 @@
 			crossOrigin: 'anonymous',
 		});
 
+		var pontoscriticos = L.tileLayer.wms(servidor, {
+			layers: 'SMO:v_pontoscriticos',
+			className: 'Pontos Críticos',
+			transparent: true,
+			format: 'image/png',
+			version: '1.3.0',
+			// opacity: .3,
+			crossOrigin: 'anonymous',
+		});
+
+		var ciclovias = L.tileLayer.wms(servidor,{
+			layers: 'SMO:v_ciclovias' ,
+			transparent:true,
+			format: 'image/png',
+			version: '1.3.0',
+			// opacity: .3,
+			crossOrigin: 'anonymous',
+		});
+
 		// var obrascivisPontos = L.GeoJSON(servidor,{
 		// 	layers: 'SMO:v_obrascivis',
 		// 	name: "Obras de Construção Civil",
@@ -321,6 +340,8 @@
 			'Bairros': bairros,
 			'Infraestrutura viária': infraestrutura, 
 			'Obras Civis': civilsubgrupo,
+			'Pontos Críticos': pontoscriticos,
+			'Ciclovias': ciclovias,
 		};
 
 		bairros.addTo(map);
@@ -439,11 +460,19 @@
 			contents3 = div.innerHTML = '<br><img src="' + servidor 
 					+ '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=SMO:bairros" </img><br>';
 
+			var titre4 = 'Pontos Críticos';
+    		var contents4 = div.innerHTML = '<br><img src="' + servidor 
+        			+ '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=22&HEIGHT=22&LAYER=SMO:v_pontoscriticos" </img><br>';
+			
+			var titre5 = 'Ciclovias';
+    		var contents5 = div.innerHTML = '<br><img src="' + servidor 
+        			+ '?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=22&HEIGHT=22&LAYER=SMO:v_ciclovias" </img><br>';
+
 			// var titre3 = 'lim_inter_district';
 			// contents3 = div.innerHTML = '<br><img src="http://localhost:8050/geoserver/wms?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&WIDTH=20&HEIGHT=20&LAYER=hta_zaghouan:limite_inter_district" </img><br>';
 			
 			var slideMenu = L.control.slideMenu('', {position: 'topright', delay: '5'}).addTo(map);
-			slideMenu.setContents(titre1 + contents1 + titre2 + contents2 + titre3 + contents3  );
+			slideMenu.setContents(titre1 + contents1 + titre2 + contents2 + titre3 + contents3 + titre4 + contents4 + titre5 + contents5  );
 		
 
 		///// criando um controle de camadas de base + couches geoserver
